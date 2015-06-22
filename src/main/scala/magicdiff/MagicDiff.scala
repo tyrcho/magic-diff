@@ -3,7 +3,7 @@ package magicdiff
 import java.io.File
 
 object MagicDiff extends App {
-  val comparator = ContentComparator
+  val comparator = DiffComparator
 
   val left = if (args.length > 0) args(0) else "a"
   val right = if (args.length > 1) args(1) else "b"
