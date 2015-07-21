@@ -11,7 +11,7 @@ case object Similar extends Comparison { val ord = -1 }
 case class Different(deltas: List[Delta]) extends Comparison {
   val ord = deltas.size
 
-  override def toString = s"${deltas.size} diffs : ${deltas.mkString("\n")}"
+  override def toString = s"diff(${deltas.size})"// diffs : ${deltas.mkString("\n")}"
 }
 object ComparisonOrder extends Ordering[Comparison] {
   def compare(a: Comparison, b: Comparison) = b.ord - a.ord

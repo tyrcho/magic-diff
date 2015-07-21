@@ -29,10 +29,9 @@ object MagicDiff extends App {
   for {
     (status, elts) <- results
   } {
-    println(status)
     for {
       (name, _) <- elts.sortBy(_._1)
-    } println(name)
+    } println(s"$status\t$name")
   }
 
 }
