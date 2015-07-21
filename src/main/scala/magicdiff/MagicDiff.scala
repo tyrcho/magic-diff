@@ -8,20 +8,31 @@ object MagicDiff extends App {
   val left = if (args.length > 0) args(0) else "a"
   val right = if (args.length > 1) args(1) else "b"
 
-  val leftFiles = FilesIterator(left).filesRec()
-  val rightFiles = FilesIterator(right).filesRec()
-  val all = (leftFiles ++ rightFiles).toSet
+  val leftFiles = FilesIterator(left, keepJava).filesRec()
+  val rightFiles = FilesIterator(right, keepJava).filesRec()
+  val all = (leftFiles ++ rightFiles).toList.distinct
 
   def status(f: String) = {
-    if (leftFiles.contains(f) && !rightFiles.contains(f)) "left"
-    else if (!leftFiles.contains(f) && rightFiles.contains(f)) "right"
+    val (isLeft, isRight) = (leftFiles.contains(f), rightFiles.contains(f))
+    if (isLeft && !isRight) Left
+    else if (!isLeft && isRight) Right
     else comparator.compare(leftFiles(f), rightFiles(f))
   }
 
-  for {
+  def keepJava(f: File) = f.getName.endsWith("java")
+
+  val results = (for {
     (name, f) <- all
-    if name.endsWith("java")
+    st = status(name)
+  } yield (name, st)).groupBy(_._2).toList.sortBy(_._1)(ComparisonOrder)
+
+  for {
+    (status, elts) <- results
   } {
-    println(s"$name,${status(name)}")
+    println(status)
+    for {
+      (name, _) <- elts.sortBy(_._1)
+    } println(name)
   }
+
 }

@@ -6,35 +6,35 @@ import difflib.DiffUtils
 import scala.collection.JavaConversions._
 import difflib.Delta
 
+
 trait FileComparator {
-  def compare(a: File, b: File): String
+  def compare(a: File, b: File): Comparison
 }
 
 object ContentComparator extends FileComparator {
   def readFile(f: File) = Source.fromFile(f).getLines.toList
 
-  def compare(a: File, b: File): String = {
-    if (readFile(a) == readFile(b)) "equals" else "diff"
+  def compare(a: File, b: File): Comparison = {
+    if (readFile(a) == readFile(b)) Equals
+    else Different(Nil)
   }
 }
 
 object DiffComparator extends FileComparator {
   def readFile(f: File) = Source.fromFile(f).getLines.toList
 
-  def compare(a: File, b: File): String = {
+  def compare(a: File, b: File): Comparison = {
     val deltas = DiffUtils.diff(readFile(a), readFile(b)).getDeltas
-    if (deltas.isEmpty)
-      "equals"
-    else explain(deltas.filter(!ignore(_)).toList)
+    if (deltas.isEmpty) Equals
+    else {
+      val diffs = deltas.filter(keep)
+      if (diffs.isEmpty) Similar
+      else Different(diffs.toList)
+    }
   }
 
-  def ignore(d: Delta): Boolean = {
+  def keep(d: Delta): Boolean = {
     val lines = (d.getOriginal.getLines ++ d.getRevised.getLines).map(_.toString.trim)
-    lines.forall(l => l.isEmpty || l.startsWith("import"))
-  }
-
-  def explain(deltas: List[Delta]) = {
-    val count = deltas.size
-    s"$count deltas ($deltas)"
+    lines.exists(l => l.nonEmpty && !l.startsWith("import"))
   }
 }

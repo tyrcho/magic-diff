@@ -3,7 +3,7 @@ package magicdiff
 import java.io.File
 import scala.collection.JavaConversions._
 
-case class FilesIterator(rootFolder: String, keepFiles: File => Boolean = _ => true) {
+case class FilesIterator(rootFolder: String, keepFiles: (File => Boolean) = (_ => true)) {
   val prefix = rootFolder.length
   
   def filesRec(root: File = new File(rootFolder)): Map[String, File] = {
